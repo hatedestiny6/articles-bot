@@ -140,6 +140,8 @@ async def task(context: ContextTypes):
                                            f"В магазине OZON у товара с артикулом {article} "
                                            f"сменилась стоимость с {last_price} на {cur_price}!"
                                            )
+            
+            context.job.data['ozon_articles'][article] = cur_price
 
     # теперь проверяем Wildberries
     for article in list(context.job.data['wb_articles'].keys()):
@@ -154,6 +156,8 @@ async def task(context: ContextTypes):
                                            f"В магазине Wildberries у товара с артикулом {article} "
                                            f"сменилась стоимость с {last_price} на {cur_price}!"
                                            )
+            
+            context.job.data['wb_articles'][article] = cur_price
 
 
 def remove_job_if_exists(name, context):
@@ -281,8 +285,9 @@ async def add_user_article(update: Update, context: ContextTypes):
     await update.message.reply_text("Идет проверка артикула...")
 
     if context.user_data['cur_platform'] == 'OZON':
+        price = check_ozon(article)
         # если некорректный формат артикула
-        if not check_ozon(article):
+        if not price:
             await update.message.reply_text(
                 "Некорректный артикул! "
                 "Пожалуйста, проверьте правильность введённых данных и попробуйте снова.",
@@ -290,8 +295,9 @@ async def add_user_article(update: Update, context: ContextTypes):
 
             return 3
 
-        context.user_data['ozon_articles'][article] = ''
-
+        context.user_data['ozon_articles'][article] = price
+        
+        await update.message.reply_text(context.user_data['ozon_articles'])
         await update.message.reply_text(
             f"OZON артикул {article} успешно добавлен!"
         )
@@ -315,7 +321,7 @@ async def add_user_article(update: Update, context: ContextTypes):
 
             return 3
 
-        context.user_data['wb_articles'][article] = ''
+        context.user_data['wb_articles'][article] = res
 
         await update.message.reply_text(
             f"Wildberries артикул {article} успешно добавлен!"
@@ -454,6 +460,10 @@ async def stop(update: Update, context: ContextTypes):
     return ConversationHandler.END
 
 
+async def change(update: Update, context: ContextTypes):
+    context.user_data['ozon_articles'][340401426] = "7\u2009890\u2009\u20bd "
+    await update.message.reply_text(2)
+
 def main():
     # Создаём объект Application.
     application = Application.builder().token(BOT_TOKEN).build()
@@ -495,6 +505,7 @@ def main():
     application.add_handler(CommandHandler("help", help_cmd))
     application.add_handler(CommandHandler("startchecking", start_checking))
     application.add_handler(CommandHandler("stop", stop))
+    application.add_handler(CommandHandler("change", change))
 
     # Запускаем приложение.
     application.run_polling()
@@ -503,6 +514,6 @@ def main():
 # Запускаем функцию main() в случае запуска скрипта.
 if __name__ == '__main__':
     BOT_TOKEN = "6064533705:AAFy_PObiHjdS1hpWy93BYAM8UtmdO8uCzg"
-    TIMER = 1800  # в секундах
+    TIMER = 5  # в секундах
 
     main()
