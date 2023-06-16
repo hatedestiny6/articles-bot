@@ -502,7 +502,7 @@ def main():
 
 # Запускаем функцию main() в случае запуска скрипта.
 if __name__ == '__main__':
-    BOT_TOKEN = "ТОКЕН"
+    BOT_TOKEN = "6064533705:AAFy_PObiHjdS1hpWy93BYAM8UtmdO8uCzg"
     TIMER = 1800  # в секундах
 
     main()
