@@ -5,8 +5,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
-from fake_useragent import UserAgent
-
 
 def check_wb(article_num):
     """Вытаскивает цену из карточки товара с
@@ -15,14 +13,8 @@ def check_wb(article_num):
     Args:
         article_num (str): артикул товара
     """
-    ua = UserAgent()
-
-    options = webdriver.ChromeOptions()
-    options.add_argument(f"user-agent={ua.random}")
-
     browser = webdriver.Chrome(
-        service=ChromeService(ChromeDriverManager().install()),
-        options=options)
+        service=ChromeService(ChromeDriverManager().install()))
     browser.minimize_window()
 
     browser.get(

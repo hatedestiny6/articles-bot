@@ -11,11 +11,11 @@ async def stopchecking(update: Update, context: ContextTypes):
 
     if job_removed:
         await update.message.reply_text(
-            "Проверка остановлена! Используйте команду "
+            "Мониторинг остановлен! Используйте команду "
             "/help при возникновении трудностей.")
     else:
         await update.message.reply_text(
-            "Вы не запускали проверку! Используйте команду "
+            "Вы не запускали мониторинг! Используйте команду "
             "/help при возникновении трудностей.")
 
     return ConversationHandler.END

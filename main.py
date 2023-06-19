@@ -36,7 +36,7 @@ async def start_checking(update: Update, context: ContextTypes):
     if not context.user_data['ozon_articles'] \
             and not context.user_data['wb_articles']:
         await update.message.reply_text(
-            "Для запуска проверки добавьте артикулы "
+            "Для запуска мониторинга добавьте артикулы "
             "отслеживаемых товаров. Используйте команду "
             "/help при возникновении трудностей.")
 
@@ -46,7 +46,7 @@ async def start_checking(update: Update, context: ContextTypes):
                                         name=str(chat_id), data=context.user_data)
 
         await update.message.reply_text(
-            "Проверка запущена! Используйте команду "
+            "Мониторинг запущен! Используйте команду "
             "/help при возникновении трудностей.")
 
 

@@ -4,8 +4,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 
-from fake_useragent import UserAgent
-
 
 def parse_ozon(article_num):
     """Вытаскивает информацию из карточки товара с
@@ -14,14 +12,9 @@ def parse_ozon(article_num):
     Args:
         article_num (str): артикул товара
     """
-    ua = UserAgent()
-
-    options = webdriver.ChromeOptions()
-    options.add_argument(f"user-agent={ua.random}")
 
     browser = webdriver.Chrome(
-        service=ChromeService(ChromeDriverManager().install()),
-        options=options)
+        service=ChromeService(ChromeDriverManager().install()))
     browser.maximize_window()
     browser.get(f"https://www.ozon.ru/product/{article_num}")
 
