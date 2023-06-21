@@ -15,7 +15,7 @@ def check_ozon(article_num):
 
     browser = webdriver.Chrome(
         service=ChromeService(ChromeDriverManager().install()))
-    browser.maximize_window()
+    browser.set_window_size(800, 800)
 
     browser.get(f"https://www.ozon.ru/product/{article_num}")
     try:

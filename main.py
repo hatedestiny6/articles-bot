@@ -71,7 +71,7 @@ async def task(context: ContextTypes):
     # теперь проверяем Wildberries
     for article in list(context.job.data['wb_articles'].keys()):
         last_price = context.job.data['wb_articles'][article]
-        cur_price = check_wb(article)
+        cur_price = check_wb(article, context.user_data['browser'])
 
         if not last_price:
             context.job.data['wb_articles'][article] = cur_price

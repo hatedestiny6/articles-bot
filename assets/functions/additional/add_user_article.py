@@ -79,7 +79,7 @@ async def add_user_article(update: Update, context: ContextTypes):
         # )
 
     elif context.user_data['cur_platform'] == 'Wildberries':
-        res = check_wb(article)
+        res = check_wb(article, context.user_data['browser'])
         # если некорректный формат артикула
         if not res:
             await update.message.reply_text(
@@ -100,23 +100,47 @@ async def add_user_article(update: Update, context: ContextTypes):
         await update.message.reply_text("Проверка прошла успешно! "
                                         "Собираю информацию о товаре...")
 
-        brand, name, discount = parse_wb(article)
+        brand, name, discs, old_price = parse_wb(
+            context.user_data['browser'])
 
         message = f"<b>Информация о товаре:</b>\n"\
             f"• <b>Артикул:</b> {article}\n"\
             f"• <b>Бренд:</b> {brand}\n"\
             f"• <b>Наименование:</b> {name}\n"
 
-        if discount:
-            message += f"• <b>Скидка:</b> {discount}%\n"
-            message += f"• <b>Цена со скидкой:</b> {res}₽\n"
+        if not discs:
+            message += f"• <b>Цена:</b> {res}\n\n"
+
+        elif len(discs) == 1:
+            key, value = list(discs.items())[0]
+
+            if 'покупателя' in key:
+                message += f"• <b>Цена:</b> {old_price}₽\n\n"
+                message += "<b>✅ СПП применяется</b>\n"
+                message += f"• <b>СПП:</b> {key.split()[-1]}%\n"
+                message += f"• <b>Цена с учетом СПП:</b> {value.strip()}₽\n"
+
+            else:
+                message += f"• <b>Скидка:</b> {key.split()[-1]}%\n"
+                message += f"• <b>Цена со скидкой:</b> {value.strip()}₽\n\n"
 
         else:
-            message += f"• <b>Цена:</b> {res}\n\n"
+            for discount, d_price in discs.items():
+                if "покупателя" in discount:
+                    # message += f"• <b>Цена:</b> {old_price}₽\n\n"
+                    message += "<b>✅ СПП применяется</b>\n"
+                    message += f"• <b>СПП:</b> {discount.split()[-1]}%\n"
+                    message += f"• <b>Цена с учетом СПП:</b> {d_price.strip()}₽\n"
+
+                else:
+                    message += f"• <b>Скидка:</b> {discount.split()[-1]}%\n"
+                    message += f"• <b>Цена со скидкой:</b> {d_price.strip()}₽\n\n"
+
+        if "СПП" not in message:
+            message += "<b>❌ СПП не применяется</b>"
 
         res = ''.join(res.split()[:-1])
 
-        # context.user_data['wb_articles'][article] = res
         keyboard = [[InlineKeyboardButton("Добавить",
                                           callback_data=f"{article},wb_articles,{res}")],
                     [InlineKeyboardButton("Отмена",
@@ -126,9 +150,6 @@ async def add_user_article(update: Update, context: ContextTypes):
         await update.message.reply_text(message,
                                         parse_mode="HTML",
                                         reply_markup=reply_markup)
-        # await update.message.reply_text(
-        #     f"Wildberries артикул {article} успешно добавлен!"
-        # )
 
     else:
         await update.message.reply_text(
