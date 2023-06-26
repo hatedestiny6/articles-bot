@@ -1,45 +1,22 @@
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+import requests
+import json
 
 
-def check_wb(article_num, browser):
+def check_wb(article_num):
     """Вытаскивает цену из карточки товара с
         артикулом article_num на wildberries.ru
 
     Args:
         article_num (str): артикул товара
     """
-    browser.get(
-        f"https://www.wildberries.ru/catalog/{article_num}/detail.aspx")
+    url = "https://card.wb.ru/cards/detail?appType=1&curr=rub" \
+        f"&dest=-331412&fregions=68,69,30,86,1,66,22,48,114&spp=30&nm={article_num}"
+    data = requests.get(url, timeout=3)
 
-    try:
-        # ждем, пока страница прогрузится
-        price = WebDriverWait(browser, timeout=3).until(
-            lambda brows: brows.find_element(By.CLASS_NAME, "price-block__final-price").text)
-        # может произойти такое, что страница полностью
-        # загрузилась, но когда артикул неверный
-        # на странице написано о том, что
-        # что то пошло не так. а ведь
-        # WebDriverWait ждет появления элемента (цены)
-        # на странице. поэтому после окончания таймаута
-        # мы еще раз проверяем, что на странице нет того
-        # самого элемента (цены)
-        # price = browser.find_element(
-        #     By.CLASS_NAME, "price-block__final-price").text
+    if data.json()["data"]["products"]:
+        with open("source.json", 'w', encoding='utf-8') as source:
+            json.dump(data.json()["data"]["products"][0], source)
+    else:
+        return False
 
-        price = ''.join(price.split()[:-1])
-
-    except NoSuchElementException:
-        price = False
-
-    except TimeoutException:
-        try:
-            browser.find_element(
-                By.CLASS_NAME, "error500__title")
-            price = False
-
-        except NoSuchElementException:
-            price = "TIMEOUT"
-
-    return price
+    return str(data.json()["data"]["products"][0]["salePriceU"])[:-2]

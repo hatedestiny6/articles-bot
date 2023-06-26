@@ -22,6 +22,9 @@ def check_ozon(article_num):
         price = browser.find_element(
             By.CLASS_NAME, "kx6").text
 
+        with open("source.html", "w", encoding='utf-8') as f:
+            f.write(browser.page_source)
+
     except NoSuchElementException:
         price = False
 

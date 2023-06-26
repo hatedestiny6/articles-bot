@@ -21,9 +21,17 @@ async def add_user_article(update: Update, context: ContextTypes):
     reply_keyboard = [['На главную']]
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
+    if context.user_data['cur_platform'] == 'OZON':
+        if article in context.user_data['ozon_articles'].keys():
+            await update.message.reply_text(
+                "Вы уже добавляли этот артикул! "
+                "Пожалуйста, проверьте правильность введённых данных и попробуйте снова.",
+                reply_markup=markup
+            )
+
     # уведомим пользователя что бот работает
     # потому что делаем запрос к веб странице
-    # и бот "подвисает", ожидвя ответа
+    # и бот "подвисает", ожидая ответа
     await update.message.reply_text("Идет проверка артикула...")
 
     if context.user_data['cur_platform'] == 'OZON':
@@ -74,12 +82,9 @@ async def add_user_article(update: Update, context: ContextTypes):
         await update.message.reply_text(message,
                                         parse_mode="HTML",
                                         reply_markup=reply_markup)
-        # await update.message.reply_text(
-        #     f"OZON артикул {article} успешно добавлен!"
-        # )
 
     elif context.user_data['cur_platform'] == 'Wildberries':
-        res = check_wb(article, context.user_data['browser'])
+        res = check_wb(article)
         # если некорректный формат артикула
         if not res:
             await update.message.reply_text(
@@ -89,60 +94,34 @@ async def add_user_article(update: Update, context: ContextTypes):
 
             return 3
 
-        elif res == "TIMEOUT":
-            await update.message.reply_text(
-                "Превышено время ожидания! "
-                "Пожалуйста, проверьте ваше интернет-соединение и попробуйте снова.",
-                reply_markup=markup)
-
-            return 3
-
         await update.message.reply_text("Проверка прошла успешно! "
                                         "Собираю информацию о товаре...")
 
-        brand, name, discs, old_price = parse_wb(
-            context.user_data['browser'])
+        brand, name, sale, basicPriceU, clientSale, clientPriceU, quantity, priceU, price = parse_wb()
 
         message = f"<b>Информация о товаре:</b>\n"\
             f"• <b>Артикул:</b> {article}\n"\
             f"• <b>Бренд:</b> {brand}\n"\
             f"• <b>Наименование:</b> {name}\n"
 
-        if not discs:
-            message += f"• <b>Цена:</b> {res}\n\n"
+        if not sale:
+            message += f"• <b>Цена:</b> {priceU}\n\n"
+        else:
+            message += f"• <b>Скидка:</b> {sale}%\n"
+            message += f"• <b>Цена со скидкой:</b> {basicPriceU}₽\n\n"
 
-        elif len(discs) == 1:
-            key, value = list(discs.items())[0]
-
-            if 'покупателя' in key:
-                message += f"• <b>Цена:</b> {old_price}₽\n\n"
-                message += "<b>✅ СПП применяется</b>\n"
-                message += f"• <b>СПП:</b> {key.split()[-1]}%\n"
-                message += f"• <b>Цена с учетом СПП:</b> {value.strip()}₽\n"
-
-            else:
-                message += f"• <b>Скидка:</b> {key.split()[-1]}%\n"
-                message += f"• <b>Цена со скидкой:</b> {value.strip()}₽\n\n"
+        if clientSale:
+            message += "<b>✅ СПП применяется</b>\n"
+            message += f"• <b>СПП:</b> {clientSale}%\n"
+            message += f"• <b>Цена с учетом СПП:</b> {clientPriceU}₽\n\n"
 
         else:
-            for discount, d_price in discs.items():
-                if "покупателя" in discount:
-                    # message += f"• <b>Цена:</b> {old_price}₽\n\n"
-                    message += "<b>✅ СПП применяется</b>\n"
-                    message += f"• <b>СПП:</b> {discount.split()[-1]}%\n"
-                    message += f"• <b>Цена с учетом СПП:</b> {d_price.strip()}₽\n"
+            message += "<b>❌ СПП не применяется</b>\n\n"
 
-                else:
-                    message += f"• <b>Скидка:</b> {discount.split()[-1]}%\n"
-                    message += f"• <b>Цена со скидкой:</b> {d_price.strip()}₽\n\n"
-
-        if "СПП" not in message:
-            message += "<b>❌ СПП не применяется</b>"
-
-        res = ''.join(res.split()[:-1])
+        message += f"<b>Количество:</b> {quantity}"
 
         keyboard = [[InlineKeyboardButton("Добавить",
-                                          callback_data=f"{article},wb_articles,{res}")],
+                                          callback_data=f"{article},wb_articles,{price}")],
                     [InlineKeyboardButton("Отмена",
                                           callback_data='None')]]
         reply_markup = InlineKeyboardMarkup(keyboard)

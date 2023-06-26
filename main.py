@@ -17,6 +17,7 @@ from assets.functions.additional.on_main import on_main
 from assets.functions.additional.perform_action import perform_action
 from assets.functions.additional.perform_reset import perform_reset
 from assets.functions.additional.inline_button import inline_button
+from assets.functions.additional.remove_job_if_exists import remove_job_if_exists
 
 from assets.functions.checking.check_ozon import check_ozon
 from assets.functions.checking.check_wb import check_wb
@@ -42,12 +43,20 @@ async def start_checking(update: Update, context: ContextTypes):
 
     else:
         chat_id = update.effective_message.chat_id
-        context.job_queue.run_repeating(task, interval=int(context.user_data['timer']), chat_id=chat_id,
-                                        name=str(chat_id), data=context.user_data)
+        message = "Мониторинг запущен! Используйте команду "\
+            "/help при возникновении трудностей."
 
-        await update.message.reply_text(
-            "Мониторинг запущен! Используйте команду "
-            "/help при возникновении трудностей.")
+        if remove_job_if_exists(str(chat_id), context):
+            message += "\n\nМониторинг, запущенный ранее, был остановлен."
+
+        context.job_queue.run_repeating(
+            task,
+            interval=int(context.user_data['timer']),
+            chat_id=chat_id,
+            name=str(chat_id),
+            data=context.user_data)
+
+        await update.message.reply_text(message)
 
 
 async def task(context: ContextTypes):
@@ -71,7 +80,7 @@ async def task(context: ContextTypes):
     # теперь проверяем Wildberries
     for article in list(context.job.data['wb_articles'].keys()):
         last_price = context.job.data['wb_articles'][article]
-        cur_price = check_wb(article, context.user_data['browser'])
+        cur_price = check_wb(article)
 
         if not last_price:
             context.job.data['wb_articles'][article] = cur_price
