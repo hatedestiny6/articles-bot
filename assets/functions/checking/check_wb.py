@@ -9,8 +9,9 @@ def check_wb(article_num):
     Args:
         article_num (str): артикул товара
     """
-    url = "https://card.wb.ru/cards/detail?appType=1&curr=rub" \
-        f"&dest=-331412&fregions=68,69,30,86,1,66,22,48,114&spp=30&nm={article_num}"
+
+    url = "https://card.wb.ru/cards/v1/detail?appType=1&curr=rub" \
+        f"&dest=-1257786&spp=27&nm={article_num}"
     data = requests.get(url, timeout=3)
 
     if data.json()["data"]["products"]:

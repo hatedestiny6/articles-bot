@@ -34,6 +34,8 @@ async def add_user_article(update: Update, context: ContextTypes):
     # и бот "подвисает", ожидая ответа
     await update.message.reply_text("Идет проверка артикула...")
 
+
+    # DEVELOPMENT
     if context.user_data['cur_platform'] == 'OZON':
         price = check_ozon(article)
         # если некорректный формат артикула
@@ -97,7 +99,7 @@ async def add_user_article(update: Update, context: ContextTypes):
         await update.message.reply_text("Проверка прошла успешно! "
                                         "Собираю информацию о товаре...")
 
-        brand, name, sale, basicPriceU, clientSale, clientPriceU, quantity, priceU, price = parse_wb()
+        brand, name, sale, priceU, salePriceU = parse_wb()
 
         message = f"<b>Информация о товаре:</b>\n"\
             f"• <b>Артикул:</b> {article}\n"\
@@ -108,20 +110,20 @@ async def add_user_article(update: Update, context: ContextTypes):
             message += f"• <b>Цена:</b> {priceU}\n\n"
         else:
             message += f"• <b>Скидка:</b> {sale}%\n"
-            message += f"• <b>Цена со скидкой:</b> {basicPriceU}₽\n\n"
+            message += f"• <b>Цена со скидкой:</b> {salePriceU}₽\n\n"
 
-        if clientSale:
-            message += "<b>✅ СПП применяется</b>\n"
-            message += f"• <b>СПП:</b> {clientSale}%\n"
-            message += f"• <b>Цена с учетом СПП:</b> {clientPriceU}₽\n\n"
+        # if clientSale:
+        #     message += "<b>✅ СПП применяется</b>\n"
+        #     message += f"• <b>СПП:</b> {clientSale}%\n"
+        #     message += f"• <b>Цена с учетом СПП:</b> {clientPriceU}₽\n\n"
 
-        else:
-            message += "<b>❌ СПП не применяется</b>\n\n"
+        # else:
+        #     message += "<b>❌ СПП не применяется</b>\n\n"
 
-        message += f"<b>Количество:</b> {quantity}"
+        # message += f"<b>Количество:</b> {quantity}"
 
         keyboard = [[InlineKeyboardButton("Добавить",
-                                          callback_data=f"{article},wb_articles,{price}")],
+                                          callback_data=f"{article},wb_articles,{salePriceU}")],
                     [InlineKeyboardButton("Отмена",
                                           callback_data='None')]]
         reply_markup = InlineKeyboardMarkup(keyboard)
