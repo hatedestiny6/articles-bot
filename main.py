@@ -82,6 +82,9 @@ async def task(context: ContextTypes):
         last_price = context.job.data['wb_articles'][article]
         cur_price = check_wb(article)
 
+        if not cur_price:
+            return
+
         if not last_price:
             context.job.data['wb_articles'][article] = cur_price
 
